@@ -6,12 +6,13 @@ import {
   NotFoundException,
   Param,
   Post,
+  UnprocessableEntityException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Artist, ArtistDocument } from '../schemas/artist.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateArtistDto } from './create-artist.dto';
 
@@ -27,11 +28,19 @@ export class ArtistsController {
     @Body() artistData: CreateArtistDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return await this.ArtistModel.create({
-      name: artistData.name,
-      image: file ? 'images/' + file.filename : null,
-      information: artistData.information,
-    });
+    try {
+      return await this.ArtistModel.create({
+        name: artistData.name,
+        image: file ? 'images/' + file.filename : null,
+        information: artistData.information,
+      });
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        throw new UnprocessableEntityException(error);
+      }
+
+      throw error;
+    }
   }
 
   @Get()
@@ -52,6 +61,12 @@ export class ArtistsController {
 
   @Delete(':id')
   async deleteOne(@Param('id') id: string) {
+    const existingArtist = await this.ArtistModel.findById(id);
+
+    if (!existingArtist) {
+      throw new NotFoundException(`Artist with id ${id} not found`);
+    }
+
     await this.ArtistModel.findOneAndDelete({ _id: id });
     return `Artist with id ${id} deleted successfully`;
   }
