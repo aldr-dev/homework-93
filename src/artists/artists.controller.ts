@@ -6,8 +6,10 @@ import {
   NotFoundException,
   Param,
   Post,
+  SetMetadata,
   UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,6 +18,8 @@ import mongoose, { Model } from 'mongoose';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateArtistDto } from './create-artist.dto';
 import { storage } from '../multer';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
+import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('artists')
 export class ArtistsController {
@@ -23,6 +27,7 @@ export class ArtistsController {
     @InjectModel(Artist.name) private ArtistModel: Model<ArtistDocument>,
   ) {}
 
+  @UseGuards(TokenAuthGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', { storage }))
   async create(
@@ -60,6 +65,8 @@ export class ArtistsController {
     return artist;
   }
 
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   @Delete(':id')
   async deleteOne(@Param('id') id: string) {
     const existingArtist = await this.ArtistModel.findById(id);

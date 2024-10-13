@@ -7,8 +7,10 @@ import {
   Param,
   Post,
   Query,
+  SetMetadata,
   UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -17,6 +19,8 @@ import { Album, AlbumDocument } from '../schemas/album.schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAlbumDto } from './create-album.dto';
 import { storage } from '../multer';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
+import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('albums')
 export class AlbumsController {
@@ -24,6 +28,7 @@ export class AlbumsController {
     @InjectModel(Album.name) private AlbumModel: Model<AlbumDocument>,
   ) {}
 
+  @UseGuards(TokenAuthGuard)
   @Post()
   @UseInterceptors(FileInterceptor('image', { storage }))
   async create(
@@ -66,6 +71,8 @@ export class AlbumsController {
     return album;
   }
 
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   @Delete(':id')
   async deleteOne(@Param('id') id: string) {
     const existingAlbum = await this.AlbumModel.findById(id);
