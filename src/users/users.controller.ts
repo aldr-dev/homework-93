@@ -26,6 +26,8 @@ export class UsersController {
         email: registerUserDto.email,
         password: registerUserDto.password,
         displayName: registerUserDto.displayName,
+        // role: registerUserDto.role, Поскольку у нас нет фикстур, назначаем роль "admin" вручную.
+        // После чего данную строку следует удалить.
       });
 
       user.generateToken();

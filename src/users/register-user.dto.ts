@@ -18,4 +18,6 @@ export class RegisterUserDto {
 
   @IsNotEmpty()
   displayName: string;
+
+  role: string;
 }
