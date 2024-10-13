@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Post,
@@ -12,18 +13,19 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { TokenAuthGuard } from '../auth/token-auth.guard';
+import { RegisterUserDto } from './register-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   @Post()
-  async registerUser(@Req() req: Request) {
+  async registerUser(@Body() registerUserDto: RegisterUserDto) {
     try {
       const user = new this.userModel({
-        email: req.body.email,
-        password: req.body.password,
-        displayName: req.body.displayName,
+        email: registerUserDto.email,
+        password: registerUserDto.password,
+        displayName: registerUserDto.displayName,
       });
 
       user.generateToken();

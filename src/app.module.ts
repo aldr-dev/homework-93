@@ -12,6 +12,8 @@ import { User, UserSchema } from './schemas/user.schema';
 import { UsersController } from './users/users.controller';
 import { AuthService } from './auth/auth.service';
 import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './auth/local.strategy';
+import { UniqueUserEmailConstraint } from './users/validators/unique-user-email.validator';
 
 @Module({
   imports: [
@@ -31,6 +33,11 @@ import { PassportModule } from '@nestjs/passport';
     TracksController,
     UsersController,
   ],
-  providers: [AppService, AuthService],
+  providers: [
+    AppService,
+    AuthService,
+    LocalStrategy,
+    UniqueUserEmailConstraint,
+  ],
 })
 export class AppModule {}
